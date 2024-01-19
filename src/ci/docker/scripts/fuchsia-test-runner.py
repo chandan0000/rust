@@ -139,9 +139,7 @@ class TestEnvironment:
             print(msg)
 
     def subprocess_output(self):
-        if self.verbose:
-            return sys.stdout
-        return subprocess.DEVNULL
+        return sys.stdout if self.verbose else subprocess.DEVNULL
 
     def ffx_daemon_log_path(self):
         return os.path.join(self.tmp_dir(), "ffx_daemon_log")
@@ -279,7 +277,7 @@ class TestEnvironment:
 
         # Look up the product bundle transfer manifest.
         self.log_info("Looking up the product bundle transfer manifest...")
-        product_name = "minimal." + self.triple_to_arch(self.target)
+        product_name = f"minimal.{self.triple_to_arch(self.target)}"
         fuchsia_version = "14.20230811.2.1"
 
         # FIXME: We should be able to replace this with the machine parsable
@@ -292,7 +290,7 @@ class TestEnvironment:
                 product_name,
                 fuchsia_version,
                 "--base-url",
-                "gs://fuchsia/development/" + fuchsia_version,
+                f"gs://fuchsia/development/{fuchsia_version}",
             ],
             env=ffx_env,
             stderr=self.subprocess_output(),
@@ -490,7 +488,7 @@ class TestEnvironment:
         def path_checksum(path):
             m = hashlib.sha256()
             m.update(path.encode("utf-8"))
-            return m.hexdigest()[0:6]
+            return m.hexdigest()[:6]
 
         base_name = os.path.basename(os.path.dirname(args.bin_path))
         exe_name = base_name.lower().replace(".", "_")
@@ -817,11 +815,6 @@ class TestEnvironment:
             # clear way that we can determine this, so it's hard coded.
             rust_src_map = f"/rustc/FAKE_PREFIX={args.rust_src}"
 
-        # Add fuchsia source if it's available
-        fuchsia_src_map = None
-        if args.fuchsia_src is not None:
-            fuchsia_src_map = f"./../..={args.fuchsia_src}"
-
         # Load debug symbols for the test binary and automatically attach
         if args.test is not None:
             if args.rust_src is None:
@@ -856,6 +849,11 @@ class TestEnvironment:
             )
             test_src_map = f"{fake_test_src_base}={real_test_src_base}"
 
+            fuchsia_src_map = (
+                f"./../..={args.fuchsia_src}"
+                if args.fuchsia_src is not None
+                else None
+            )
             with open(self.zxdb_script_path(), mode="w", encoding="utf-8") as f:
                 print(f"set source-map += {test_src_map}", file=f)
 
