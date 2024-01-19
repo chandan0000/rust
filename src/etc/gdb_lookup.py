@@ -42,9 +42,7 @@ def check_enum_discriminant(valobj):
 # Helper for enum printing that checks the discriminant.  Only used in
 # older gdb.
 def enum_provider(valobj):
-    if check_enum_discriminant(valobj):
-        return EnumProvider(valobj)
-    return None
+    return EnumProvider(valobj) if check_enum_discriminant(valobj) else None
 
 
 # Helper to handle both old and new hash maps.
@@ -70,9 +68,7 @@ class PrintByRustType(gdb.printing.SubPrettyPrinter):
         self.provider = provider
 
     def __call__(self, val):
-        if self.enabled:
-            return self.provider(val)
-        return None
+        return self.provider(val) if self.enabled else None
 
 
 class RustPrettyPrinter(gdb.printing.PrettyPrinter):
@@ -88,9 +84,7 @@ class RustPrettyPrinter(gdb.printing.PrettyPrinter):
 
     def __call__(self, valobj):
         rust_type = classify_rust_type(valobj.type)
-        if rust_type in self.type_map:
-            return self.type_map[rust_type](valobj)
-        return None
+        return self.type_map[rust_type](valobj) if rust_type in self.type_map else None
 
 
 printer = RustPrettyPrinter("rust")

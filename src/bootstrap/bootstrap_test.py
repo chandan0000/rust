@@ -160,7 +160,7 @@ class BuildBootstrap(unittest.TestCase):
         for toml_warnings in ['false', 'true', None]:
             configure_args = []
             if toml_warnings is not None:
-                configure_args = ["--set", "rust.deny-warnings=" + toml_warnings]
+                configure_args = ["--set", f"rust.deny-warnings={toml_warnings}"]
 
             _, env = self.build_args(configure_args, args=["--warnings=warn"])
             self.assertFalse("-Dwarnings" in env["RUSTFLAGS"])
